@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  auth :
+    build: ./auth/
+    ports:
+      - 8000:8000
+    networks:
+      - products-service-network
+  products :
+    build: ./products/
+    networks:
+      - products-service-network
+  db:
+    build: ./database/
+    networks:
+      - products-service-network
+
+networks:
+  products-service-network:
