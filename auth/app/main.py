@@ -1,13 +1,15 @@
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, status, Header, Request
 from sqlalchemy.orm import Session
 from jose import jwt
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import timedelta
+from typing import Annotated
 
-import uvicorn
 import os
 
-from . import crud, models, schemas
+from . import crud, models, schemas, utils
+from .api.v1 import routes as api_v1_routes
 from .database import SessionLocal, engine
 
 load_dotenv()
@@ -18,6 +20,8 @@ origins = [
     "http://0.0.0.0:3000",
 ]
 
+ACCESS_TOKEN_EXPIRE_MINUTES=1
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -25,6 +29,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(api_v1_routes.router)
 
 def get_db():
     db = SessionLocal()
@@ -35,26 +41,20 @@ def get_db():
 
 
 @app.post("/login")
-def login(form: schemas.UserSignIn, db: Session = Depends(get_db)):
+def login(form: schemas.UserSignIn, db: Session = Depends(get_db)) -> schemas.Token:
 
-    user = crud.login_user(db, form)
+    user = crud.authenticate_user(db, form)
 
-    if user:
-        token = jwt.encode({'sub': user.email}, os.getenv('SECRET_AUTH'), algorithm='HS256')
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Username atau password salah",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
 
-        return {
-            'status': 'success',
-            'code': 200,
-            'message': 'Berhasil login!',
-            'data': {
-                'access_token': token
-            }
-        }
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = utils.create_access_token(
+        data={'sub': user.email}, expires_delta=access_token_expires
+    )
 
-    else:
-        return {
-            'status': 'failed',
-            'code': 404,
-            'message': 'Gagal login!',
-            'data': None
-        }
+    return schemas.Token(access_token=access_token, token_type="Bearer")

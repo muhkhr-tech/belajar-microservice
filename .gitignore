@@ -1,2 +1,7 @@
 /auth/venv/
+/auth/__pycache__/
+/auth/app/__pycache__/
+
 /products/venv/
+/products/__pycache__/
+/products/app/__pycache__/
