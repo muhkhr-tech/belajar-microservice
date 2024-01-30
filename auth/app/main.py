@@ -1,18 +1,14 @@
 #type:ignore
 
-from fastapi import Depends, FastAPI, HTTPException, status, Header, Request
+from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
-from jose import jwt
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import timedelta
-from typing import Annotated
 
-import os
-
-from . import crud, models, schemas, utils
+from . import crud, schemas, utils
 from .api.v1 import routes as api_v1_routes
-from .database import SessionLocal, engine
+from .database import SessionLocal
 
 load_dotenv()
 
@@ -22,7 +18,7 @@ origins = [
     "http://0.0.0.0:3000",
 ]
 
-ACCESS_TOKEN_EXPIRE_MINUTES=1
+ACCESS_TOKEN_EXPIRE_MINUTES=60
 
 app.add_middleware(
     CORSMiddleware,

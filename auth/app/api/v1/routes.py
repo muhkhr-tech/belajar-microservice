@@ -3,24 +3,14 @@
 from fastapi import APIRouter, Request, Depends, HTTPException, status, Header
 from typing import Annotated
 
-from ... import utils, schemas
+from .dependencies import get_token_header
+from ... import schemas
 
-
-async def auth_middleware(request: Request):
-    if 'token' in request.headers:
-        if utils.is_token_valid(request.headers['token']):
-            return True
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Token tidak dikenali",
-        headers={"WWW-Authenticate": "Bearer"}
-    )
 
 router = APIRouter(
     prefix='/api',
     tags=['API v1'],
-    dependencies=[Depends(auth_middleware)]
+    dependencies=[Depends(get_token_header)]
 )
 
 @router.get("/token")
