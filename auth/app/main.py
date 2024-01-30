@@ -1,3 +1,5 @@
+#type:ignore
+
 from fastapi import Depends, FastAPI, HTTPException, status, Header, Request
 from sqlalchemy.orm import Session
 from jose import jwt
@@ -40,10 +42,10 @@ def get_db():
         db.close()
 
 
-@app.post("/login")
+@app.post("/login", tags=["User Auth"])
 def login(form: schemas.UserSignIn, db: Session = Depends(get_db)) -> schemas.Token:
 
-    user = crud.authenticate_user(db, form)
+    user = utils.authenticate_user(db, form)
 
     if not user:
         raise HTTPException(
@@ -58,3 +60,10 @@ def login(form: schemas.UserSignIn, db: Session = Depends(get_db)) -> schemas.To
     )
 
     return schemas.Token(access_token=access_token, token_type="Bearer")
+
+@app.post("/register", tags=["User Auth"])
+def register(form: schemas.UserRegister, db: Session = Depends(get_db)):
+
+    user = crud.register_user(db, form)
+
+    return {"message": "Berhasil melakukan registrasi"}

@@ -1,3 +1,5 @@
+#type:ignore
+
 from fastapi import APIRouter, Request, Depends, HTTPException, status, Header
 from typing import Annotated
 
